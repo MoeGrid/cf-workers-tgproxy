@@ -5,5 +5,3 @@ SECRET=0123456789abcdef0123456789abcdef
 BOOT=0123456789abcdef0123456789abcdef0123456789abcdef
 # ADMIN: 可选。设置后访问 / 和 /api/stats 必须带 ?admin=<值>
 # ADMIN=
-# CONTACT_URL: 可选。设置后看板显示一个中性技术支持入口
-# CONTACT_URL=

@@ -10,4 +10,3 @@ enabled = true
 #   SECRET  必填，32 位 hex（或 dd/ee/ef + 32 位 hex）
 #   BOOT    必填，>=16 字符随机串
 #   ADMIN   可选，设置后看板与 /api/stats 需要 ?admin=<值>
-#   CONTACT_URL 可选，设置后看板显示一个中性的技术支持入口

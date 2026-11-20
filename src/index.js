@@ -12,7 +12,7 @@ import { enc } from './util/frames.js';
 import { bearer, binary, hello, protos, reply } from './util/http.js';
 import { authBoot, leases, mkBoot, mkCfg, mkLease, mkSess, verify } from './crypto/token.js';
 import { bridge } from './http/bridge.js';
-import { STATS, markStart, snapshot } from './stats.js';
+import { STATS, snapshot } from './stats.js';
 import { mkSession } from './net/session.js';
 import { mkDashboard } from './pages/dashboard.js';
 import { mkPage } from './pages/tunnel.js';
@@ -42,8 +42,6 @@ export default {
 };
 
 async function route(req, env) {
-  markStart();
-
   const url = new URL(req.url);
   const { pathname: path, origin } = url;
   const { method, headers } = req;
@@ -58,7 +56,7 @@ async function route(req, env) {
   // 1. 运行指标
   if (path === '/api/stats' && method === 'GET') {
     if (!adminAllowed(url, env)) return reply();
-    return new Response(JSON.stringify(snapshot(env)), {
+    return new Response(JSON.stringify(snapshot()), {
       status: 200,
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
@@ -99,7 +97,6 @@ async function route(req, env) {
       host: url.hostname,
       secret: cfg.secret,
       admin: env.ADMIN || '',
-      contactUrl: env.CONTACT_URL || '',
     });
     return new Response(html, {
       status: 200,

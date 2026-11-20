@@ -30,6 +30,6 @@ pnpm-debug.log*
 Thumbs.db
 Desktop.ini
 
-# 其他
+# 其他文件
 test/
 legacy/

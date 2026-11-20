@@ -9,7 +9,7 @@ const macKeys = new Map();
 /** session token -> lease。进程内 Map，随 isolate 生命周期。 */
 export const leases = new Map();
 
-/** 解析代理密钥。支持 32 位 hex，或 dd/ee/ef 前缀的 34 位形式。 */
+/** 解析访问密钥。支持 32 位 hex，或 dd/ee/ef 前缀的 34 位形式。 */
 export function getKey(v, keepTag = false) {
   const str = String(v || '').trim().toLowerCase();
   if (!/^(?:[0-9a-f]{32}|(?:dd|ee|ef)[0-9a-f]{32})$/.test(str)) throw Error();

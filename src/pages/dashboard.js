@@ -1,31 +1,12 @@
 // 落地看板：展示接入信息与实例运行指标。
 //
-// 界面文案保持中性；接入串在浏览器端拼接，不落在 HTML 源码里。
+// 接入串由浏览器端拼装，不落在 HTML 源码里。
 // 若配置了 ADMIN，则页面本身必须先通过 ?admin= 校验才会下发。
-
-/** 插入 HTML 文本/属性前转义。 */
-const escapeHtml = (v) =>
-  String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 /** 插入内联 <script> 的字符串字面量：转义 < 防止提前闭合脚本标签。 */
 const jsString = (v) => JSON.stringify(String(v)).replace(/</g, '\\u003c');
 
-export function mkDashboard({ host, secret, admin = '', contactUrl = '' }) {
-  const contact = String(contactUrl || '');
-  const contactCard = contact
-    ? `
-    <div class="card-section" style="margin-bottom: 0;">
-      <div class="section-label">技术支持</div>
-      <div class="panel">
-        <div class="hint">如需协助或反馈线路问题，请通过以下入口联系。</div>
-        <div class="btn-group" style="margin-top: 12px;">
-          <a href="${escapeHtml(contact)}" target="_blank" rel="noopener noreferrer" class="btn btn-success">打开支持页面</a>
-          <button class="btn btn-default" onclick="copyContact()">复制链接</button>
-        </div>
-      </div>
-    </div>`
-    : '';
-
+export function mkDashboard({ host, secret, admin = '' }) {
   return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -69,15 +50,12 @@ export function mkDashboard({ host, secret, admin = '', contactUrl = '' }) {
   .btn-primary:hover { background-color: #66b1ff; border-color: #66b1ff; }
   .btn-default { background-color: #fff; color: #606266; border-color: #dcdfe6; }
   .btn-default:hover { color: #409eff; border-color: #c6e2ff; background-color: #ecf5ff; }
-  .btn-success { background-color: #67c23a; color: #fff; border-color: #67c23a; }
-  .btn-success:hover { background-color: #85ce61; border-color: #85ce61; }
-  .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .metric-card { background: #fafafa; border: 1px solid #ebeef5; border-radius: 6px; padding: 13px 10px; text-align: center; }
   .metric-title { font-size: 12px; color: #909399; margin-bottom: 5px; }
   .metric-value { font-family: Consolas, Monaco, monospace; font-size: 17px; font-weight: 600; color: #303133; }
   .metric-unit { font-size: 12px; color: #909399; font-weight: normal; }
   .metric-sub { font-size: 11px; color: #c0c4cc; margin-top: 3px; }
-  .hint { font-size: 13px; color: #606266; line-height: 1.6; }
   .footer { padding: 14px 24px 18px; border-top: 1px solid #f2f3f5; font-size: 11px; color: #c0c4cc; text-align: center; letter-spacing: 0.4px; }
   .toast {
     position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
@@ -92,7 +70,7 @@ export function mkDashboard({ host, secret, admin = '', contactUrl = '' }) {
     100% { opacity: 0; transform: translate(-50%, -10px); }
   }
   @media (max-width: 480px) {
-    .metrics-grid { grid-template-columns: 1fr 1fr; }
+    .metrics-grid { grid-template-columns: 1fr; }
     .detail-row { flex-direction: column; gap: 2px; }
     .detail-value { text-align: left; }
   }
@@ -152,23 +130,8 @@ export function mkDashboard({ host, secret, admin = '', contactUrl = '' }) {
           <div class="metric-value" id="val-sessions">0 <span class="metric-unit">次</span></div>
           <div class="metric-sub">总接入次数</div>
         </div>
-        <div class="metric-card">
-          <div class="metric-title">持续运行</div>
-          <div class="metric-value" id="val-uptime" style="font-size: 15px;">计算中...</div>
-          <div class="metric-sub">当前实例在线时长</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-title">实例启动</div>
-          <div class="metric-value" id="val-machine-boot" style="font-size: 14px;">计算中...</div>
-          <div class="metric-sub">边缘节点启动时间</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-title">实例运行时长</div>
-          <div class="metric-value" id="val-machine-uptime" style="font-size: 15px;">计算中...</div>
-          <div class="metric-sub">健康活跃时间</div>
-        </div>
       </div>
-    </div>${contactCard}
+    </div>
   </div>
 
   <div class="footer">EDGE RELAY · 仅提供 WebSocket 中继能力</div>
@@ -178,7 +141,6 @@ export function mkDashboard({ host, secret, admin = '', contactUrl = '' }) {
 var HOST = ${jsString(host)};
 var SECRET = ${jsString(secret)};
 var ADMIN = ${jsString(admin || '')};
-var CONTACT = ${jsString(contact)};
 var STATS_URL = '/api/stats' + (ADMIN ? '?admin=' + encodeURIComponent(ADMIN) : '');
 
 function buildLink() {
@@ -189,9 +151,6 @@ function copyLink() {
 }
 function openLink() {
   location.href = buildLink();
-}
-function copyContact() {
-  copyText(CONTACT, '链接已复制');
 }
 function copyText(text, msg) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -228,9 +187,6 @@ function updateMetrics() {
       setHtml('val-online', data.active_connections + ' <span class="metric-unit">路</span>');
       setText('val-traffic', data.total_traffic);
       setHtml('val-sessions', data.total_sessions + ' <span class="metric-unit">次</span>');
-      setText('val-uptime', data.uptime);
-      setText('val-machine-boot', data.machine_boot_time);
-      setText('val-machine-uptime', data.machine_uptime);
     }).catch(function () {});
 }
 updateMetrics();
