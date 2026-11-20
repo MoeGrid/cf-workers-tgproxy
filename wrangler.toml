@@ -9,4 +9,5 @@ enabled = true
 # 变量通过 `wrangler secret put` 或控制台注入，不要写在这里：
 #   SECRET  必填，32 位 hex（或 dd/ee/ef + 32 位 hex）
 #   BOOT    必填，>=16 字符随机串
-#   ADMIN   可选，设置后看板与 /api/stats 需要 ?admin=<值>
+#
+# 看板与 /api/stats 需要带 ?secret=<SECRET> 才可访问。

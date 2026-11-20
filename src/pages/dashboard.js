@@ -1,12 +1,12 @@
 // 落地看板：展示接入信息与实例运行指标。
 //
 // 接入串由浏览器端拼装，不落在 HTML 源码里。
-// 若配置了 ADMIN，则页面本身必须先通过 ?admin= 校验才会下发。
+// 页面自身由 Worker 侧用 ?secret= 校验后才下发。
 
 /** 插入内联 <script> 的字符串字面量：转义 < 防止提前闭合脚本标签。 */
 const jsString = (v) => JSON.stringify(String(v)).replace(/</g, '\\u003c');
 
-export function mkDashboard({ host, secret, admin = '' }) {
+export function mkDashboard({ host, secret }) {
   return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -140,8 +140,7 @@ export function mkDashboard({ host, secret, admin = '' }) {
 <script>
 var HOST = ${jsString(host)};
 var SECRET = ${jsString(secret)};
-var ADMIN = ${jsString(admin || '')};
-var STATS_URL = '/api/stats' + (ADMIN ? '?admin=' + encodeURIComponent(ADMIN) : '');
+var STATS_URL = '/api/stats?secret=' + encodeURIComponent(SECRET);
 
 function buildLink() {
   return 't' + 'g://webproxy?server=' + encodeURIComponent(HOST) + '&secret=' + encodeURIComponent(SECRET);

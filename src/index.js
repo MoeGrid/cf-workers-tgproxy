@@ -1,11 +1,11 @@
 // Worker 入口：路由分发。
 //
 // 根路径有三种语义：
-//   1. 带 ?bridge=<签名>      -> 客户端隧道页（必须公开，客户端不会带 admin）
-//   2. 普通浏览器 + 已配置 ADMIN 但未授权 -> 404
-//   3. 普通浏览器             -> 落地看板
+//   1. 带 ?bridge=<签名>      -> 客户端隧道页（必须公开，客户端不会带 secret）
+//   2. 普通浏览器 + 未带合法 ?secret= -> 404
+//   3. 普通浏览器 + 合法 ?secret=     -> 落地看板
 //
-// /health、/api/v1/session、/api/v1/ws 走各自的令牌校验，不受 ADMIN 影响。
+// /health、/api/v1/session、/api/v1/ws 走各自的令牌校验，不受 ?secret= 影响。
 
 import { LIMITS } from './config.js';
 import { enc } from './util/frames.js';
@@ -19,14 +19,12 @@ import { mkPage } from './pages/tunnel.js';
 
 const KNOWN_PATHS = ['/', '/health', '/api/v1/session', '/api/v1/ws'];
 
-/** 常量时间比较 ADMIN 令牌。未配置 ADMIN 时视为开放。 */
-function adminAllowed(url, env) {
-  const token = env.ADMIN;
-  if (!token) return true;
-  const given = url.searchParams.get('admin') || '';
-  if (given.length !== token.length) return false;
+/** 常量时间比较访问密钥。看板与 /api/stats 共用 SECRET。 */
+function keyAllowed(url, secret) {
+  const given = url.searchParams.get('secret') || '';
+  if (given.length !== secret.length) return false;
   let diff = 0;
-  for (let i = 0; i < token.length; i++) diff |= given.charCodeAt(i) ^ token.charCodeAt(i);
+  for (let i = 0; i < secret.length; i++) diff |= given.charCodeAt(i) ^ secret.charCodeAt(i);
   return diff === 0;
 }
 
@@ -55,7 +53,7 @@ async function route(req, env) {
 
   // 1. 运行指标
   if (path === '/api/stats' && method === 'GET') {
-    if (!adminAllowed(url, env)) return reply();
+    if (!keyAllowed(url, cfg.secret)) return reply();
     return new Response(JSON.stringify(snapshot()), {
       status: 200,
       headers: {
@@ -91,13 +89,9 @@ async function route(req, env) {
     }
 
     if (method === 'HEAD') return new Response(null, { status: 200 });
-    if (!adminAllowed(url, env)) return reply();
+    if (!keyAllowed(url, cfg.secret)) return reply();
 
-    const html = mkDashboard({
-      host: url.hostname,
-      secret: cfg.secret,
-      admin: env.ADMIN || '',
-    });
+    const html = mkDashboard({ host: url.hostname, secret: cfg.secret });
     return new Response(html, {
       status: 200,
       headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
