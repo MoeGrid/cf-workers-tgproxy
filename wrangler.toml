@@ -1,0 +1,13 @@
+name = "edge-ws-relay"
+main = "src/index.js"
+compatibility_date = "2026-11-20"
+
+# 可选：按需打开日志观测
+[observability]
+enabled = true
+
+# 变量通过 `wrangler secret put` 或控制台注入，不要写在这里：
+#   SECRET  必填，32 位 hex（或 dd/ee/ef + 32 位 hex）
+#   BOOT    必填，>=16 字符随机串
+#   ADMIN   可选，设置后看板与 /api/stats 需要 ?admin=<值>
+#   CONTACT_URL 可选，设置后看板显示一个中性的技术支持入口

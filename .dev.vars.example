@@ -1,0 +1,9 @@
+# 复制为 .dev.vars 后填入真实值（该文件已被 .gitignore 忽略）
+# SECRET: 32 位 hex，或 dd/ee/ef 前缀 + 32 位 hex。生成：openssl rand -hex 16
+SECRET=0123456789abcdef0123456789abcdef
+# BOOT: 任意非空随机串，建议 48 位 hex。生成：openssl rand -hex 24
+BOOT=0123456789abcdef0123456789abcdef0123456789abcdef
+# ADMIN: 可选。设置后访问 / 和 /api/stats 必须带 ?admin=<值>
+# ADMIN=
+# CONTACT_URL: 可选。设置后看板显示一个中性技术支持入口
+# CONTACT_URL=
